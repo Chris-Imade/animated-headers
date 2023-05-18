@@ -31,20 +31,38 @@ export default () => {
   const scrollY = React.useRef(new Animated.Value(0)).current;
   const [bottomActions, setBottomActions] = React.useState(null);
   
-  const topEdge = bottomActions?.y - height + bottomActions?.height;
-  const inputRange = [-1, 0, topEdge - 60, topEdge, topEdge + 1];
+  const bottomEdge = bottomActions?.y - height + bottomActions?.height;
+  // const topEdge = React.useRef(new Animated.Value(0)).current;
+  const topEdgeValue = 490;
+  const inputRange = [-1, 100, 100];
+
+  const handleScroll = Animated.event(
+    [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+    { useNativeDriver: true },
+    (event) => {
+      const { y } = event.nativeEvent.contentOffset;
+      const isScrolledToTop = y <= topEdgeValue;
+      Animated.timing(topEdge, {
+        toValue: isScrolledToTop ? 0 : bottomEdge,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    }
+  );
 
   return (
     <SafeAreaView>
       <StatusBar hidden />
       <Animated.ScrollView
-        onScroll={Animated.event(
-          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-          { useNativeDriver: true }
-        )}
+        onScroll={handleScroll}
         contentContainerStyle={{ padding: 20 }}
       >
         <Text style={styles.heading}>Black and White </Text>
+        {/* shadow header */}
+        <View
+          onLayout={ev => setBottomActions(ev.nativeEvent.layout)}
+          style={[styles.bottomActions]} 
+        />
         {articleParagraphs.map((text, index) => {
           return (
             <View key={index}>
@@ -55,9 +73,7 @@ export default () => {
             </View>
           );
         })}
-        <View
-        onLayout={ev => setBottomActions(ev.nativeEvent.layout)}
-        style={[styles.bottomActions]} />
+        
         <View>
           <Text style={styles.featuredTitle}>Featured</Text>
           {articleParagraphs.slice(0, 3).map((text, index) => {
@@ -75,22 +91,26 @@ export default () => {
           })}
         </View>
       </Animated.ScrollView>
+      {/* header */}
       { bottomActions && (
           <Animated.View
             style={[
-              styles.bottomActions,
               {
                 position: "absolute",
-                bottom: 0,
+                backgroundColor: "green",
+                opacity: 0.5,
                 left: 0,
                 right: 0,
+                height: 80,
+                // backgroundColor: "white",
+                alignItems: "center",
+                justifyContent: "space-between",
+                flexDirection: "row",
                 paddingHorizontal: 20,
-                transform: [{
-                  translateY: scrollY.interpolate({
-                    inputRange,
-                    outputRange: [0, 0, 0, 0, -1],
-                  })
-                }]
+                transform: [{ translateY: scrollY.interpolate({
+                  inputRange: [-1, 100, 100],
+                  outputRange: [-topEdgeValue, 0, 0]
+                }) }],
               },
             ]}
           >
@@ -110,38 +130,38 @@ export default () => {
               />
               <Animated.Text
                 style={{
-                  opacity: scrollY.interpolate({
-                    inputRange,
-                    outputRange: [0, 0, 0, 1, 1]
-                  })
+                  // opacity: scrollY.interpolate({
+                  //   inputRange,
+                  //   outputRange: [0, 1]
+                  // })
                 }}
               >326
               </Animated.Text>
             </View>
             <View style={{ flexDirection: "row" }}>
               <Animated.View style={[styles.icon, {
-                opacity: scrollY.interpolate({
-                  inputRange,
-                  outputRange: [0, 0, 0, 1, 1]
-                })
+                // opacity: scrollY.interpolate({
+                //   inputRange,
+                //   outputRange: [0, 1]
+                // })
               }]}>
                 <Entypo name="export" size={24} color="black" />
               </Animated.View>
               <Animated.View style={[styles.icon, {
-                transform: [{
-                  translateX: scrollY.interpolate({
-                    inputRange,
-                    outputRange: [60, 60, 60, 0, 0]
-                  })
-                }]
+                // transform: [{
+                //   translateX: scrollY.interpolate({
+                //     inputRange,
+                //     outputRange: [0, 1]
+                //   })
+                // }]
               }]}>
                 <Entypo name="credit" size={24} color="green" />
               </Animated.View>
               <Animated.View style={[styles.icon, {
-                opacity: scrollY.interpolate({
-                  inputRange,
-                  outputRange: [0, 0, 0, 1, 1]
-                })
+                // opacity: scrollY.interpolate({
+                //   inputRange,
+                //   outputRange: [0, 1]
+                // })
               }]}>
                 <Entypo name="share-alternative" size={24} color="black" />
               </Animated.View>
@@ -161,9 +181,9 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   bottomActions: {
-    marginTop: 20,
+    marginTop: 380,
     height: 80,
-    backgroundColor: "white",
+    backgroundColor: "red",
     alignItems: "center",
     justifyContent: "space-between",
     flexDirection: "row",
